@@ -1,42 +1,39 @@
 import React, { useState } from "react";
 import { View, TextInput, Button, StyleSheet, Text, Alert } from "react-native";
+import { useNavigation } from "expo-router";
 
-const Signup = ({ navigation }) => {
-    const [name, setName] = useState("");
+const Login = () => {
     const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [phoneNumber, setPhoneNumber] = useState("");
     const [password, setPassword] = useState("");
+    const navigation = useNavigation();
 
-    const handleSignUp = async () => {
+    const handleLogin = async () => {
         try {
+            console.log(``);
             const response = await fetch(
-                `${process.env.EXPO_PUBLIC_BASE_URI}/signup`,
+                `${process.env.EXPO_PUBLIC_BASE_URI}/login`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        name,
-                        username,
-                        email,
-                        phoneNumber,
-                        password,
-                    }),
+                    body: JSON.stringify({ username, password }),
                 }
             );
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.message || "Failed to sign up");
+                console.log(data);
+                throw new Error(data.message || "Failed to log in");
             }
 
-            Alert.alert("Success", "User registered successfully", [
+            Alert.alert("Success", "User logged in successfully", [
                 {
                     text: "OK",
                     onPress: () => {
-                        navigation.navigate("index");
+                        navigation.navigate("homescreen", {
+                            username: username,
+                        });
                     },
                 },
             ]);
@@ -49,30 +46,13 @@ const Signup = ({ navigation }) => {
     return (
         <View style={styles.gradientContainer}>
             <View style={styles.container}>
-                <Text style={styles.title}>Sign Up</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Name"
-                    value={name}
-                    onChangeText={setName}
-                />
+                <Text style={styles.title}>Login</Text>
                 <TextInput
                     style={styles.input}
                     placeholder="Username"
                     value={username}
                     onChangeText={setUsername}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Phone Number"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
+                    autoCapitalize="none"
                 />
                 <TextInput
                     style={styles.input}
@@ -80,10 +60,18 @@ const Signup = ({ navigation }) => {
                     secureTextEntry
                     value={password}
                     onChangeText={setPassword}
+                    autoCapitalize="none"
                 />
                 <Button
-                    title="Sign Up"
-                    onPress={handleSignUp}
+                    title="Login"
+                    onPress={handleLogin}
+                    style={styles.loginButton}
+                    textStyle={styles.buttonText}
+                />
+                <View style={styles.buttonSeparator} />
+                <Button
+                    title="Not a user ? Sign Up!"
+                    onPress={() => navigation.navigate("signup")}
                     style={styles.signupButton}
                     textStyle={styles.buttonText}
                 />
@@ -95,20 +83,23 @@ const Signup = ({ navigation }) => {
 const styles = StyleSheet.create({
     gradientContainer: {
         flex: 1,
-        backgroundColor: "#4c669f", // Starting color of the gradient
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#000080", // Dark blue background color for the page
     },
     container: {
-        flex: 0.7,
+        width: "80%", // Adjust width as per your design
         justifyContent: "center",
         alignItems: "center",
         padding: 20,
-        backgroundColor: "#FFC0CB", // White background color with some opacity
-        borderRadius: 20,
-        margin: 30,
+        backgroundColor: "#FFC0CB", // Light pink gradient color for container
+        borderRadius: 10,
+        margin: 20,
     },
     title: {
         fontSize: 24,
         marginBottom: 20,
+        color: "black", // Title color
     },
     input: {
         width: "100%",
@@ -119,12 +110,23 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: "white",
     },
-    signupButton: {
-        backgroundColor: "#007bff",
+    loginButton: {
+        backgroundColor: "#FF69B4", // Darker pink color for button
         padding: 10,
         borderRadius: 5,
         width: "100%",
         alignItems: "center",
+        marginBottom: 10,
+    },
+    signupButton: {
+        backgroundColor: "#FF69B4", // Darker pink color for button
+        padding: 10,
+        borderRadius: 5,
+        width: "100%",
+        alignItems: "center",
+    },
+    buttonSeparator: {
+        height: 10, // Adjust height as per your design
     },
     buttonText: {
         color: "white",
@@ -133,4 +135,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Signup;
+export default Login;
