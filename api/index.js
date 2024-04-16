@@ -1,11 +1,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
 const app = express();
 const port = 3000;
 const cors = require("cors");
 app.use(cors());
+dotenv.config();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -20,10 +22,50 @@ mongoose
   });
 
 app.listen(port, () => {
-  console.log("Server running on port 3000");
+  console.log(`Server running on port ${port}`);
 });
 
 const Habit = require("./models/cabbit");
+const User = require("./models/login");
+const NewUser = require("./models/signup");
+
+// Signup Route
+app.post("/signup", async (req, res) => {
+  try {
+    const { name, username, email, phoneNumber, password } = req.body;
+    // Check if the user already exists
+    const existingUser = await NewUser.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+    // Create a new user
+    const newUser = new NewUser({
+      name,
+      username,
+      email,
+      phoneNumber,
+      password,
+    });
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Login Route
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await NewUser.findOne({ username, password });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 //endpoint to create a habit in the backend
 app.post("/habits", async (req, res) => {

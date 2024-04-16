@@ -1,3 +1,5 @@
+//create.js
+
 import {
   StyleSheet,
   Text,
@@ -11,10 +13,16 @@ import React, { useState } from "react";
 import { Ionicons, AntDesign } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import axios from "axios";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
 
-const create = () => {
+const Create = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [title, setTitle] = useState("");
+  const [repeatMode, setRepeatMode] = useState("daily");
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [reminder, setReminder] = useState(true);
+  const navigation = useNavigation();
   const colors = [
     "#FF5733", // Red
     "#FFD700", // Gold
@@ -23,15 +31,29 @@ const create = () => {
     "#32CD32", // Lime Green
     "#CCCCFF", // Tomato
     "#4169E1", // Royal Blue
+    "#E75480", // Pink
+    "#FFA500", // Orange
+    "#8A2BE2", // Blue Violet
   ];
-  const days = ["M", "T", "W", "T", "F", "S", "S"];
+
+  const days = [
+    { label: "M", value: "Monday" },
+    { label: "T", value: "Tuesday" },
+    { label: "W", value: "Wednesday" },
+    { label: "T", value: "Thursday" },
+    { label: "F", value: "Friday" },
+    { label: "S", value: "Saturday" },
+    { label: "S", value: "Sunday" },
+  ];
+
   async function addHabit() {
     try {
       const habitDetails = {
         title: title,
         color: selectedColor,
-        repeatMode: "daily",
-        reminder: true,
+        repeatMode: repeatMode,
+        days: selectedDays,
+        reminder: reminder,
       };
 
       const response = await axios.post(
@@ -41,7 +63,11 @@ const create = () => {
 
       if (response.status === 200) {
         setTitle("");
-        Alert.alert("Habit added succesfully", "Enjoy Practising");
+        setSelectedColor("");
+        setRepeatMode("daily");
+        setSelectedDays([]);
+        setReminder(true);
+        Alert.alert("Habit added successfully", "Enjoy Practicing");
       }
 
       console.log("habit added", response);
@@ -49,28 +75,109 @@ const create = () => {
       console.log("error adding a habit", error);
     }
   }
+
   return (
-    <View style={{ padding: 10 }}>
-      <Ionicons name="arrow-back" size={24} color="black" />
+    <LinearGradient colors={["#FFC0CB", "#FF69B4"]} style={{ flex: 1 }}>
+      <View style={{ padding: 10 }}>
+        <Ionicons
+          name="arrow-back"
+          size={24}
+          color="black"
+          onPress={() => navigation.goBack()}
+        />
 
-      <Text style={{ fontSize: 20, marginTop: 10 }}>
-        Create <Text style={{ fontSize: 20, fontWeight: "500" }}>Habit</Text>
-      </Text>
-      <TextInput
-        value={title}
-        onChangeText={(text) => setTitle(text)}
-        style={{
-          width: "95%",
-          marginTop: 15,
-          padding: 15,
-          borderRadius: 10,
-          backgroundColor: "#E1EBEE",
-        }}
-        placeholder="Title"
-      />
+        <Text
+          style={{
+            fontSize: 20,
+            marginTop: 10,
+            fontWeight: "500",
+            color: "black",
+          }}
+        >
+          Create Habit :
+        </Text>
+        <TextInput
+          value={title}
+          onChangeText={(text) => setTitle(text)}
+          style={{
+            width: "95%",
+            marginTop: 15,
+            padding: 15,
+            borderRadius: 10,
+            backgroundColor: "#E75480",
+            color: "black",
+          }}
+          placeholder="Type your Habit..."
+          placeholderTextColor="pink"
+        />
 
-      <View style={{ marginVertical: 10 }}>
-        <Text style={{ fontSize: 18, fontWeight: "500" }}>Color</Text>
+        <View style={{ marginVertical: 10 }}>
+          <Text style={{ fontSize: 18, fontWeight: "500", color: "black" }}>
+            Pick Your Color :
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 10,
+            }}
+          >
+            {colors?.map((item, index) => (
+              <TouchableOpacity
+                onPress={() => setSelectedColor(item)}
+                key={index}
+                activeOpacity={0.8}
+              >
+                {selectedColor === item ? (
+                  <AntDesign name="plussquare" size={30} color={item} />
+                ) : (
+                  <FontAwesome name="square" size={30} color={item} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <Text style={{ fontSize: 18, fontWeight: "500", color: "black" }}>
+          Repeat
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            marginVertical: 10,
+          }}
+        >
+          <Pressable
+            style={{
+              backgroundColor: repeatMode === "daily" ? "#AFDBF5" : "#FFFFFF",
+              padding: 10,
+              borderRadius: 6,
+              flex: 1,
+            }}
+            onPress={() => setRepeatMode("daily")}
+          >
+            <Text style={{ textAlign: "center", color: "black" }}>Daily</Text>
+          </Pressable>
+          <Pressable
+            style={{
+              backgroundColor: repeatMode === "weekly" ? "#AFDBF5" : "#FFFFFF",
+              padding: 10,
+              borderRadius: 6,
+              flex: 1,
+            }}
+            onPress={() => setRepeatMode("weekly")}
+          >
+            <Text style={{ textAlign: "center", color: "black" }}>Weekly</Text>
+          </Pressable>
+        </View>
+
+        <Text style={{ fontSize: 18, fontWeight: "500", color: "black" }}>
+          On these days
+        </Text>
+
         <View
           style={{
             flexDirection: "row",
@@ -79,112 +186,108 @@ const create = () => {
             marginTop: 10,
           }}
         >
-          {colors?.map((item, index) => (
-            <TouchableOpacity
-              onPress={() => setSelectedColor(item)}
+          {days?.map((item, index) => (
+            <Pressable
               key={index}
-              activeOpacity={0.8}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: selectedDays.includes(item.value)
+                  ? "black"
+                  : "black",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onPress={() =>
+                setSelectedDays((prevDays) =>
+                  prevDays.includes(item.value)
+                    ? prevDays.filter((day) => day !== item.value)
+                    : [...prevDays, item.value]
+                )
+              }
             >
-              {selectedColor === item ? (
-                <AntDesign name="plussquare" size={30} color={item} />
-              ) : (
-                <FontAwesome name="square" size={30} color={item} />
+              {selectedDays.includes(item.value) && (
+                <FontAwesome name="check" size={20} color="black" />
               )}
-            </TouchableOpacity>
+              <Text
+                style={{
+                  color: selectedDays.includes(item.value) ? "black" : "black",
+                }}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
           ))}
         </View>
-      </View>
 
-      <Text style={{ fontSize: 18, fontWeight: "500" }}>Repeat</Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 10,
-          marginVertical: 10,
-        }}
-      >
-        <Pressable
+        <View
           style={{
-            backgroundColor: "#AFDBF5",
-            padding: 10,
-            borderRadius: 6,
-            flex: 1,
+            marginTop: 20,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          <Text style={{ textAlign: "center" }}>Daily</Text>
-        </Pressable>
-        <Pressable
-          style={{
-            backgroundColor: "#AFDBF5",
-            padding: 10,
-            borderRadius: 6,
-            flex: 1,
-          }}
-        >
-          <Text style={{ textAlign: "center" }}>Weekly</Text>
-        </Pressable>
-      </View>
-
-      <Text style={{ fontSize: 18, fontWeight: "500" }}>On these days</Text>
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 10,
-          marginTop: 10,
-        }}
-      >
-        {days?.map((item, index) => (
-          <Pressable
+          <Text style={{ fontSize: 17, fontWeight: "500" }}>Reminder</Text>
+          <View
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 5,
-              backgroundColor: "#E0E0E0",
-              justifyContent: "center",
+              flexDirection: "row",
               alignItems: "center",
             }}
           >
-            <Text>{item}</Text>
-          </Pressable>
-        ))}
-      </View>
+            <Text
+              onPress={() => setReminder(true)}
+              style={{
+                fontSize: 17,
+                fontWeight: "500",
+                color: reminder ? "black" : "black",
+                marginRight: 10,
+                backgroundColor: reminder ? "white" : "transparent",
+                padding: 5,
+                borderRadius: 5,
+              }}
+            >
+              Yes
+            </Text>
+            <Text
+              onPress={() => setReminder(false)}
+              style={{
+                fontSize: 17,
+                fontWeight: "500",
+                color: reminder ? "black" : "black",
+                marginLeft: 10,
+                backgroundColor: !reminder ? "white" : "transparent",
+                padding: 5,
+                borderRadius: 5,
+              }}
+            >
+              No
+            </Text>
+          </View>
+        </View>
 
-      <View
-        style={{
-          marginTop: 20,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Text style={{ fontSize: 17, fontWeight: "500" }}>Reminder</Text>
-        <Text style={{ fontSize: 17, fontWeight: "500", color: "#2774AE" }}>
-          Yes
-        </Text>
-      </View>
-
-      <Pressable
-        onPress={addHabit}
-        style={{
-          marginTop: 25,
-          backgroundColor: "#00428c",
-          padding: 10,
-          borderRadius: 8,
-        }}
-      >
-        <Text
-          style={{ textAlign: "center", color: "white", fontWeight: "bold" }}
+        <Pressable
+          onPress={addHabit}
+          style={{
+            marginTop: 25,
+            backgroundColor: "#00428c",
+            padding: 10,
+            borderRadius: 8,
+          }}
         >
-          SAVE
-        </Text>
-      </Pressable>
-    </View>
+          <Text
+            style={{ textAlign: "center", color: "white", fontWeight: "bold" }}
+          >
+            SAVE
+          </Text>
+        </Pressable>
+      </View>
+    </LinearGradient>
   );
 };
 
-export default create;
+export default Create;
 
 const styles = StyleSheet.create({});
